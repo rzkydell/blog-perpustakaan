@@ -35,15 +35,15 @@ class EventResource extends Resource
                         ->directory('event-banners')
                         ->imageEditor()
                         ->maxSize(2048)
-                        ->required(fn (callable $get) => $get('status') === 'published')
+                        ->required(fn(callable $get) => $get('status') === 'published')
                         ->columnSpanFull(),
 
                     Forms\Components\TextInput::make('title')
                         ->required()
                         ->live(onBlur: true)
                         ->afterStateUpdated(
-                            fn (string $state, callable $set) =>
-                                $set('slug', Str::slug($state))
+                            fn(string $state, callable $set) =>
+                            $set('slug', Str::slug($state))
                         ),
 
                     Forms\Components\TextInput::make('slug')
@@ -69,6 +69,18 @@ class EventResource extends Resource
                     Forms\Components\TextInput::make('location')
                         ->placeholder('Campus Hall / Online / Zoom'),
 
+                    // INTEGRASI BARU: Status Event untuk Frontend
+                    Forms\Components\Select::make('status_event')
+                        ->label('Event Status (Frontend)')
+                        ->options([
+                            'upcoming' => 'Upcoming',
+                            'ongoing' => 'Ongoing',
+                            'full' => 'Full',
+                        ])
+                        ->required()
+                        ->default('upcoming')
+                        ->native(false), // Membuat tampilan select lebih modern
+
                     Forms\Components\TextInput::make('registration_link')
                         ->label('Registration Link')
                         ->url()
@@ -88,7 +100,7 @@ class EventResource extends Resource
                         ])
                         ->default('draft')
                         ->required()
-                        ->disabled(fn () => Auth::user()->role !== 'admin')
+                        ->disabled(fn() => Auth::user()->role !== 'admin')
                         ->rules([
                             function (callable $get) {
                                 return function (string $attribute, $value, \Closure $fail) use ($get) {
@@ -102,10 +114,11 @@ class EventResource extends Resource
 
                     Forms\Components\DateTimePicker::make('published_at')
                         ->label('Tanggal Publikasi')
-                        ->visible(fn (callable $get) => $get('status') === 'published')
-                        ->required(fn (callable $get) => $get('status') === 'published')
-                        ->disabled(fn () => Auth::user()->role !== 'admin')
-                        ->default(fn (callable $get) =>
+                        ->visible(fn(callable $get) => $get('status') === 'published')
+                        ->required(fn(callable $get) => $get('status') === 'published')
+                        ->disabled(fn() => Auth::user()->role !== 'admin')
+                        ->default(
+                            fn(callable $get) =>
                             $get('status') === 'published' ? now() : null
                         ),
                 ])
@@ -126,19 +139,28 @@ class EventResource extends Resource
                     ->date('d M Y')
                     ->sortable(),
 
-                TextColumn::make('location')
-                    ->limit(30),
-
-                TextColumn::make('status')
+                // Menambahkan kolom status_event di tabel agar mudah dipantau
+                TextColumn::make('status_event')
+                    ->label('Event Status')
                     ->badge()
                     ->colors([
-                        'secondary' => 'draft',
+                        'info' => 'upcoming',
+                        'success' => 'ongoing',
+                        'danger' => 'full',
+                    ]),
+
+                TextColumn::make('status')
+                    ->label('Record Status')
+                    ->badge()
+                    ->colors([
+                        'gray' => 'draft',
                         'success' => 'published',
                     ]),
 
                 TextColumn::make('created_at')
                     ->dateTime('d M Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('event_date', 'asc')
             ->actions([

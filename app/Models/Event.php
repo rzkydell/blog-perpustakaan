@@ -13,11 +13,16 @@ class Event extends Model
         'title',
         'slug',
         'banner',
+        'category',
         'description',
         'event_date',
+        'event_time',
         'location',
+        'location_type',
         'registration_link',
+        'spots_left',
         'status',
+        'status_event',
         'user_id',
     ];
 

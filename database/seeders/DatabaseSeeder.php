@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Membuat atau memperbarui user admin utama
         User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
@@ -21,5 +22,11 @@ class DatabaseSeeder extends Seeder
                 'role' => 'admin',
             ]
         );
+
+        // 2. Memanggil seeder FinalDatabaseSeeder untuk mengisi data lengkap
+        // Pastikan file FinalDatabaseSeeder.php sudah Anda buat sebelumnya
+        $this->call([
+            FinalDatabaseSeeder::class,
+        ]);
     }
 }

@@ -3,28 +3,42 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ArticleController;
+use App\Models\Category;
+use App\Models\Event;
+use App\Models\LibraryInformation;
 
-// Route testing default Sanctum (boleh dipertahankan atau dihapus kalau tidak perlu)
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
+// 1. Route User (Bawaan Laravel Sanctum)
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Route publik untuk artikel & kategori (tidak perlu auth dulu)
-Route::get('/articles', [ArticleController::class, 'index']);
-Route::get('/articles/{slug}', [ArticleController::class, 'show']);
-Route::get('/categories', [ArticleController::class, 'categories']);
-
-// Alternatif: lebih rapi pakai group + prefix (opsional tapi direkomendasikan)
+// 2. Route Kelompok Artikel
 Route::prefix('articles')->group(function () {
-    Route::get('/', [ArticleController::class, 'index']);       // → /api/articles
-    Route::get('/{slug}', [ArticleController::class, 'show']); // → /api/articles/{slug}
+    // Ambil semua artikel (Terbaru & Pilihan ditangani oleh filter di Controller atau Frontend)
+    Route::get('/', [ArticleController::class, 'index']);
+
+    // Ambil detail artikel berdasarkan SLUG
+    Route::get('/{slug}', [ArticleController::class, 'show']);
 });
 
-Route::get('/categories', [ArticleController::class, 'categories']); // → /api/categories
+// 3. Route Kategori
+// Mengarahkan ke method 'categories' di ArticleController agar mendapat withCount
+Route::get('/categories', [ArticleController::class, 'categories']);
 
-// Jika nanti butuh route yang **protected** (misal create/update artikel dari frontend admin):
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::post('/articles', [ArticleController::class, 'store']);
-//     Route::put('/articles/{id}', [ArticleController::class, 'update']);
-//     // dst...
-// });
+// 4. Route Events (Acara Mendatang)
+// Mengambil event yang statusnya 'published'
+Route::get('/events', function () {
+    return response()->json(Event::where('status', 'published')->latest()->get());
+});
+
+// 5. Route Library Information
+// Mengambil informasi perpustakaan (seperti jam buka, kontak, dll)
+Route::get('/library-info', function () {
+    return response()->json(LibraryInformation::where('status', 'published')->get());
+});

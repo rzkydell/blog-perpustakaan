@@ -19,7 +19,7 @@ class Article extends Model
         'published_at',
         'category_id',
         'user_id',
-    ];    
+    ];
 
     protected $casts = [
         'published_at' => 'datetime',
